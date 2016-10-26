@@ -452,7 +452,7 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     private boolean mKeyguardFadingAway;
     private long mKeyguardFadingAwayDelay;
     private long mKeyguardFadingAwayDuration;
-    
+
     //Blur stuff
     private int mBlurScale;
     private int mBlurRadius;
@@ -1532,11 +1532,12 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mHeadsUpManager.addListener(mScrimController);
         mStackScroller.setScrimController(mScrimController);
         mStatusBarView.setScrimController(mScrimController);
-        mDozeScrimController = new DozeScrimController(mScrimController, context);
+        mDozeScrimController = new DozeScrimController(mScrimController, context, mStackScroller);
         mVisualizerView = (VisualizerView) mStatusBarWindow.findViewById(R.id.visualizerview);
 
         mKeyguardStatusBar = (KeyguardStatusBarView) mStatusBarWindow.findViewById(R.id.keyguard_header);
-        mKeyguardStatusView = (KeyguardStatusView) mStatusBarWindow.findViewById(R.id.keyguard_status_view);
+        mKeyguardStatusView =
+		(KeyguardStatusView) mStatusBarWindow.findViewById(R.id.keyguard_status_view);
         mKeyguardBottomArea =
                 (KeyguardBottomAreaView) mStatusBarWindow.findViewById(R.id.keyguard_bottom_area);
         mKeyguardBottomArea.setActivityStarter(this);
@@ -3536,6 +3537,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
         } else {
             updateNotificationRanking(null);
+            if (isHeadsUp) {
+                mDozeServiceHost.fireNotificationHeadsUp();
+            }
         }
 
     }
@@ -3608,6 +3612,10 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
     @Override
     public void onReorderingAllowed() {
         updateNotifications();
+    }
+
+    public boolean isPulsing() {
+        return mDozeScrimController.isPulsing();
     }
 
     /**
@@ -4076,9 +4084,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
 
     @Override // CommandQueue
     public void buzzBeepBlinked() {
-        if (mDozeServiceHost != null) {
-            mDozeServiceHost.fireBuzzBeepBlinked();
-        }
     }
 
     @Override
@@ -6484,7 +6489,6 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         private static final long PROCESSING_TIME = 500;
 
         private final ArrayList<Callback> mCallbacks = new ArrayList<Callback>();
-        private final H mHandler = new H();
 
         // Keeps the last reported state by fireNotificationLight.
         private boolean mNotificationLightOn;
@@ -6500,9 +6504,9 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             }
         }
 
-        public void fireBuzzBeepBlinked() {
+        public void fireNotificationHeadsUp() {
             for (Callback callback : mCallbacks) {
-                callback.onBuzzBeepBlinked();
+                callback.onNotificationHeadsUp();
             }
         }
 
@@ -6530,18 +6534,45 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         }
 
         @Override
-        public void startDozing(@NonNull Runnable ready) {
-            mHandler.obtainMessage(H.MSG_START_DOZING, ready).sendToTarget();
+        public void startDozing() {
+            if (!mDozingRequested) {
+                mDozingRequested = true;
+                DozeLog.traceDozing(mContext, mDozing);
+                updateDozing();
+            }
         }
 
         @Override
         public void pulseWhileDozing(@NonNull PulseCallback callback, int reason) {
-            mHandler.obtainMessage(H.MSG_PULSE_WHILE_DOZING, reason, 0, callback).sendToTarget();
+            mDozeScrimController.pulse(new PulseCallback() {
+
+                @Override
+                public void onPulseStarted() {
+                    callback.onPulseStarted();
+                    mStackScroller.setPulsing(true);
+                    mVisualStabilityManager.setPulsing(false);
+                }
+
+                @Override
+                public void onPulseFinished() {
+                    callback.onPulseFinished();
+                    mStackScroller.setPulsing(false);
+                }
+            }, reason);
         }
 
         @Override
         public void stopDozing() {
-            mHandler.obtainMessage(H.MSG_STOP_DOZING).sendToTarget();
+            if (mDozingRequested) {
+                mDozingRequested = false;
+                DozeLog.traceDozing(mContext, mDozing);
+                updateDozing();
+            }
+        }
+
+        @Override
+        public void dozeTimeTick() {
+            mKeyguardStatusView.refreshTime();
         }
 
         @Override
@@ -6560,60 +6591,11 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
             return mNotificationLightOn;
         }
 
-        private void handleStartDozing(@NonNull Runnable ready) {
-            if (!mDozingRequested) {
-                mDozingRequested = true;
-                DozeLog.traceDozing(mContext, mDozing);
-                updateDozing();
-            }
-            ready.run();
+        @Override
+        public void startPendingIntentDismissingKeyguard(PendingIntent intent) {
+            PhoneStatusBar.this.startPendingIntentDismissingKeyguard(intent);
         }
 
-        private void handlePulseWhileDozing(@NonNull PulseCallback callback, int reason) {
-            mDozeScrimController.pulse(new PulseCallback() {
-
-                @Override
-                public void onPulseStarted() {
-                    callback.onPulseStarted();
-                    mStackScroller.setPulsing(true);
-                }
-
-                @Override
-                public void onPulseFinished() {
-                    callback.onPulseFinished();
-                    mStackScroller.setPulsing(false);
-                }
-            }, reason);
-        }
-
-        private void handleStopDozing() {
-            if (mDozingRequested) {
-                mDozingRequested = false;
-                DozeLog.traceDozing(mContext, mDozing);
-                updateDozing();
-            }
-        }
-
-        private final class H extends Handler {
-            private static final int MSG_START_DOZING = 1;
-            private static final int MSG_PULSE_WHILE_DOZING = 2;
-            private static final int MSG_STOP_DOZING = 3;
-
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case MSG_START_DOZING:
-                        handleStartDozing((Runnable) msg.obj);
-                        break;
-                    case MSG_PULSE_WHILE_DOZING:
-                        handlePulseWhileDozing((PulseCallback) msg.obj, msg.arg1);
-                        break;
-                    case MSG_STOP_DOZING:
-                        handleStopDozing();
-                        break;
-                }
-            }
-        }
     }
 
     @Override

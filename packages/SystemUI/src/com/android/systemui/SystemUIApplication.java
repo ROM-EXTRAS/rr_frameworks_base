@@ -32,6 +32,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.systemui.doze.DozeFactory;
 import com.android.systemui.stackdivider.Divider;
 
 import java.util.HashMap;
@@ -56,6 +57,7 @@ public class SystemUIApplication extends Application {
             com.android.systemui.recents.Recents.class,
             com.android.systemui.volume.VolumeUI.class,
             Divider.class,
+	    DozeFactory.Initializer.class,
             com.android.systemui.statusbar.SystemBars.class,
             com.android.systemui.usb.StorageNotification.class,
             com.android.systemui.power.PowerUI.class,
