@@ -78,4 +78,8 @@
         <item>com.facebook.orca</item>
         <item>com.Slack</item>
     </string-array>
+
+    <!-- High Brightness Mode -->
+    <add-resource type="bool" name="config_supportHighBrightness"></add-resource>
+    <bool name="config_supportHighBrightness">false</bool>
 </resources>
