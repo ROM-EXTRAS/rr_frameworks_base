@@ -52,6 +52,7 @@ import android.os.Process;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.util.Slog;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -103,6 +104,7 @@ class SaveImageInBackgroundData {
  * An AsyncTask that saves an image to the media store in the background.
  */
 class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
+    private static final String TAG = "SaveImageInBackgroundTask";
 
     private static final String SCREENSHOTS_DIR_NAME = "Screenshots";
     private static final String SCREENSHOT_FILE_NAME_TEMPLATE = "Screenshot_%s.png";
@@ -321,6 +323,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
         } catch (Exception e) {
             // IOException/UnsupportedOperationException may be thrown if external storage is not
             // mounted
+            Slog.e(TAG, "unable to save screenshot", e);
             mParams.clearImage();
             mParams.errorMsgResId = R.string.screenshot_failed_to_save_text;
         }
@@ -402,8 +405,6 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
  * An AsyncTask that deletes an image from the media store in the background.
  */
 class DeleteImageInBackgroundTask extends AsyncTask<Uri, Void, Void> {
-    private static final String TAG = "DeleteImageInBackgroundTask";
-
     private Context mContext;
 
     DeleteImageInBackgroundTask(Context context) {
