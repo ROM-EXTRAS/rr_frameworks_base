@@ -59,6 +59,7 @@ import com.android.systemui.qs.tiles.NfcTile;
 import com.android.systemui.qs.tiles.LteTile;
 import com.android.systemui.qs.tiles.FlashlightTile;
 import com.android.systemui.qs.tiles.HeadsUpTile;
+import com.android.systemui.qs.tiles.HighBrightnessTile;
 import com.android.systemui.qs.tiles.HotspotTile;
 import com.android.systemui.qs.tiles.ImeTile;
 import com.android.systemui.qs.tiles.HWKeysTile;
@@ -140,6 +141,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
     private final BatteryController mBattery;
     private final StatusBarIconController mIconController;
     private final TileServices mServices;
+    private final boolean mHighBrightnessSupported;
 
     private final List<Callback> mCallbacks = new ArrayList<>();
     private final AutoTileManager mAutoTiles;
@@ -175,6 +177,7 @@ public class QSTileHost implements QSTile.Host, Tunable {
         mIconController = iconController;
         mNextAlarmController = nextAlarmController;
         mProfileController = new ManagedProfileController(this);
+	mHighBrightnessSupported = mContext.getResources().getBoolean(com.android.internal.R.bool.config_supportHighBrightness);
 
         final HandlerThread ht = new HandlerThread(QSTileHost.class.getSimpleName(),
                 Process.THREAD_PRIORITY_BACKGROUND);
@@ -493,7 +496,8 @@ public class QSTileHost implements QSTile.Host, Tunable {
         else if (tileSpec.equals("app_circle_bar")) return new AppCircleBarTile(this);
         else if (tileSpec.equals("gesture_anywhere")) return new GestureAnyWhereTile(this);
         else if (tileSpec.equals("ambient_display")) return new AmbientDisplayTile(this);
-        else if (tileSpec.equals("night")) return new NightDisplayTile(this);
+        else if (tileSpec.equals("high_brightness") && mHighBrightnessSupported) return new HighBrightnessTile(this);
+	else if (tileSpec.equals("night")) return new NightDisplayTile(this);
         else if (tileSpec.equals("heads_up")) return new HeadsUpTile(this);
         else if (tileSpec.equals("locale")) return new LocaleTile(this);
         else if (tileSpec.equals("compass")) return new CompassTile(this);
