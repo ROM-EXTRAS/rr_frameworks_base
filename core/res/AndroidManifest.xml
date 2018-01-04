@@ -3509,7 +3509,9 @@
         <service android:name="com.android.server.storage.DiskStatsLoggingService"
                  android:permission="android.permission.BIND_JOB_SERVICE" >
         </service>
-
+        
+        <service android:name="com.android.server.smartpixels.SmartPixelsService"
+                 android:exported="true" />
     </application>
 
 </manifest>

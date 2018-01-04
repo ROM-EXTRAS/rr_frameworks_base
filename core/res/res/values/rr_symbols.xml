@@ -113,6 +113,10 @@
 
   <!-- Doze mode -->
   <java-symbol type="bool" name="config_doze_enabled_by_default" />
+  
+  <!-- Smart Pixels -->
+  <java-symbol type="bool" name="config_supportSmartPixels" />
+
 
   <!-- Shortcut actions -->
   <java-symbol type="drawable" name="ic_shortcut_action_silent" />
