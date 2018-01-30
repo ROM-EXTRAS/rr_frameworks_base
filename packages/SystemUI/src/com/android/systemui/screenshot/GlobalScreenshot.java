@@ -283,6 +283,7 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
                 sharingIntent.setType("image/png");
                 sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
                 sharingIntent.putExtra(Intent.EXTRA_SUBJECT, subject);
+		sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
                 // Create a share action for the notification
                 PendingIntent chooseAction = PendingIntent.getBroadcast(context, 0,
