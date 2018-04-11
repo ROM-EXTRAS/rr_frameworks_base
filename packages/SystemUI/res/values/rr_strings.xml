@@ -313,4 +313,8 @@
 
     <string name="accessibility_data_sim">Current Data Sim</string>
     <string name="data_switch_started">Switching data SIM, this may take up to a minute...</string>
+
+    <!-- SmartPixels QS Tile -->
+    <string name="quick_settings_smart_pixels">Smart Pixels</string>
+    <string name="quick_settings_smart_pixels_on_power_save">Auto-enabled Smart Pixels</string>
 </resources>
