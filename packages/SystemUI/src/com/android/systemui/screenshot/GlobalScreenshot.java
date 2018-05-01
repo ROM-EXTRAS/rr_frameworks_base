@@ -122,13 +122,6 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
     private final int mImageWidth;
     private final int mImageHeight;
 
-    // WORKAROUND: We want the same notification across screenshots that we update so that we don't
-    // spam a user's notification drawer.  However, we only show the ticker for the saving state
-    // and if the ticker text is the same as the previous notification, then it will not show. So
-    // for now, we just add and remove a space from the ticker text to trigger the animation when
-    // necessary.
-    private static boolean mTickerAddSpace;
-
     private boolean mIsScreenshotCropShareEnabled;
 
     SaveImageInBackgroundTask(Context context, SaveImageInBackgroundData data,
@@ -181,8 +174,6 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
             c.drawColor(overlayColor);
             c.setBitmap(null);
 
-            // Show the intermediate notification
-            mTickerAddSpace = !mTickerAddSpace;
             mNotificationManager = nManager;
             final long now = System.currentTimeMillis();
 
@@ -203,8 +194,6 @@ class SaveImageInBackgroundTask extends AsyncTask<Void, Void, Void> {
             SystemUI.overrideNotificationAppName(context, mPublicNotificationBuilder);
 
             mNotificationBuilder = new Notification.Builder(context)
-                .setTicker(r.getString(R.string.screenshot_saving_ticker)
-                        + (mTickerAddSpace ? " " : ""))
                 .setContentTitle(r.getString(R.string.screenshot_saving_title))
                 .setContentText(r.getString(R.string.screenshot_saving_text))
                 .setSmallIcon(R.drawable.stat_notify_image)
