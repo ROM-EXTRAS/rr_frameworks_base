@@ -210,6 +210,7 @@ import com.android.systemui.statusbar.phone.ClockController;
 import com.android.systemui.statusbar.notification.VisualStabilityManager;
 import com.android.systemui.statusbar.phone.UnlockMethodCache.OnUnlockMethodChangedListener;
 import com.android.systemui.statusbar.policy.AccessibilityController;
+import com.android.systemui.statusbar.policy.ActivityManagerWrapper; 
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
 import com.android.systemui.statusbar.policy.BatteryControllerImpl;
@@ -233,9 +234,11 @@ import com.android.systemui.statusbar.policy.NetworkControllerImpl;
 import com.android.systemui.statusbar.policy.NextAlarmController;
 import com.android.systemui.statusbar.policy.OnHeadsUpChangedListener;
 import com.android.systemui.statusbar.policy.PreviewInflater;
+import com.android.systemui.statusbar.policy.RotationLockController; 
 import com.android.systemui.statusbar.policy.RotationLockControllerImpl;
 import com.android.systemui.statusbar.policy.SecurityControllerImpl;
 import com.android.systemui.statusbar.policy.SuControllerImpl;
+import com.android.systemui.statusbar.policy.TaskStackChangeListener; 
 import com.android.systemui.statusbar.policy.UserInfoController;
 import com.android.systemui.statusbar.policy.UserSwitcherController;
 import com.android.systemui.statusbar.policy.ZenModeController;
@@ -347,6 +350,13 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
      * libhwui.
      */
     private static final float SRC_MIN_ALPHA = 0.002f;
+
+    private static final int ROTATE_SUGGESTION_TIMEOUT_MS = 4000;
+
+    private RotationLockController mRotationLockController;
+    private TaskStackListenerImpl mTaskStackListener;
+    private final Runnable mRemoveRotationProposal = () -> setRotateSuggestionButtonState(false);    
+
     static {
         boolean onlyCoreApps;
         boolean freeformWindowManagement;
@@ -2257,12 +2267,20 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         if (DEBUG) Log.v(TAG, "addNavigationBar: about to add " + mNavigationController.getBar());
         if (mNavigationController.getBar() == null) return;
 
+        mRotationLockController = Dependency.get(RotationLockController.class);
+        // Register the task stack listener
+        mTaskStackListener = new TaskStackListenerImpl();
+        ActivityManagerWrapper.getInstance().registerTaskStackListener(mTaskStackListener);
+
         prepareNavigationBarView();
         try {
         mWindowManager.addView(mNavigationController.getBar().getBaseView(), getNavigationBarLayoutParams());
         } catch (Exception e) {
           if (DEBUG) Log.e(TAG, "Unable to add window android.view.ViewRootImpl$W@5456577 -- another window of type 2019 already exists");
-        }
+        }       
+        
+        // Unregister the task stack listener
+        ActivityManagerWrapper.getInstance().unregisterTaskStackListener(mTaskStackListener);
     }
 
     protected void repositionNavigationBar() {
@@ -2306,6 +2324,37 @@ public class PhoneStatusBar extends BaseStatusBar implements DemoMode,
         mNavigationController.screenPinningStateChanged(enabled);
     }
 
+    @Override
+    public void onRotationProposal(final int rotation, boolean isValid) {
+        // This method will be called on rotation suggestion changes even if the proposed rotation
+        // is not valid for the top app. Use invalid rotation choices as a signal to remove the
+        // rotate button if shown.
+        if (!isValid) {
+            setRotateSuggestionButtonState(false);
+            return;
+        }
+        Handler h = getView().getHandler();
+        if (rotation == mWindowManager.getDefaultDisplay().getRotation()) {
+            // Use this as a signal to remove any current suggestions
+            h.removeCallbacks(mRemoveRotationProposal);
+            setRotateSuggestionButtonState(false);
+        } else {
+            if (mNavigationBarView != null) {
+                mNavigationBarView.setLastRotation(rotation); // Remember rotation for click
+            }
+            setRotateSuggestionButtonState(true);
+            h.removeCallbacks(mRemoveRotationProposal); // Stop any pending removal
+            h.postDelayed(mRemoveRotationProposal,
+                    ROTATE_SUGGESTION_TIMEOUT_MS); // Schedule timeout
+        }
+    }
+
+    public void setRotateSuggestionButtonState(final boolean visible) {
+        if (mNavigationBarView != null) {
+            mNavigationBarView.setRotateSuggestionButtonState(visible, false);
+        }
+    }
+    //////// DONE TILL HERE, RESUME LATER DNM DNM!!!
     @Override
     public void leftInLandscapeChanged(boolean isLeft) {
         super.leftInLandscapeChanged(isLeft);

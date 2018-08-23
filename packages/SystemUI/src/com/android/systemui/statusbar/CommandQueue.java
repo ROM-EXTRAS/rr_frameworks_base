@@ -82,6 +82,7 @@ public class CommandQueue extends IStatusBar.Stub {
     private static final int MSG_RESTART_UI                    = 36 << MSG_SHIFT;
     private static final int MSG_LEFT_IN_LANDSCAPE_STATE_CHANGED  = 37 << MSG_SHIFT;
     private static final int MSG_TOGGLE_FLASHLIGHT  = 38 << MSG_SHIFT;
+    private static final int MSG_ROTATION_PROPOSAL             = 44 << MSG_SHIFT;
 
     public static final int FLAG_EXCLUDE_NONE = 0;
     public static final int FLAG_EXCLUDE_SEARCH_PANEL = 1 << 0;
@@ -143,10 +144,20 @@ public class CommandQueue extends IStatusBar.Stub {
         void restartUI();
         void leftInLandscapeChanged(boolean isLeft);
         void toggleFlashlight();
+
+        void onRotationProposal(int rotation, boolean isValid);
     }
 
     public CommandQueue(Callbacks callbacks) {
         mCallbacks = callbacks;
+    }
+
+    public void onProposedRotationChanged(int rotation, boolean isValid) {
+        synchronized (mLock) {
+            mHandler.removeMessages(MSG_ROTATION_PROPOSAL);
+            mHandler.obtainMessage(MSG_ROTATION_PROPOSAL, rotation, isValid ? 1 : 0,
+                    null).sendToTarget();
+        }
     }
 
     public void toggleFlashlight() {
@@ -584,6 +595,9 @@ public class CommandQueue extends IStatusBar.Stub {
                     break;
                 case MSG_TOGGLE_FLASHLIGHT:
                     mCallbacks.toggleFlashlight();
+                    break;
+                case MSG_ROTATION_PROPOSAL:
+                        mCallbacks.get(i).onRotationProposal(msg.arg1, msg.arg2 != 0);
                     break;
             }
         }

@@ -343,6 +343,15 @@ public class StatusBarManagerService extends IStatusBarService.Stub {
                 } catch (RemoteException ex) {}
             }
         }
+
+        @Override
+        public void onProposedRotationChanged(int rotation, boolean isValid) {
+            if (mBar != null){
+                try {
+                    mBar.onProposedRotationChanged(rotation, isValid);
+                } catch (RemoteException ex) {}
+            }
+        }
     };
 
     // ================================================================================

@@ -122,4 +122,9 @@ oneway interface IStatusBar
     void handleSystemNavigationKey(in int key);
 
     void setAutoRotate(boolean enabled);
+
+    /**
+     * Notifies the status bar that a new rotation suggestion is available.
+     */
+    void onProposedRotationChanged(int rotation, boolean isValid);
 }
