@@ -39,7 +39,6 @@ public class VisualStabilityManager implements OnHeadsUpChangedListener {
     private VisibilityLocationProvider mVisibilityLocationProvider;
     private ArraySet<View> mAllowedReorderViews = new ArraySet<>();
     private ArraySet<View> mAddedChildren = new ArraySet<>();
-    private boolean mPulsing;
 
     /**
      * Add a callback to invoke when reordering is allowed again.
@@ -68,16 +67,8 @@ public class VisualStabilityManager implements OnHeadsUpChangedListener {
         updateReorderingAllowed();
     }
 
-    /**
-     * @param pulsing whether we are currently pulsing for ambient display.
-     */
-    public void setPulsing(boolean pulsing) {
-        mPulsing = pulsing;
-        updateReorderingAllowed();
-    }
-
     private void updateReorderingAllowed() {
-        boolean reorderingAllowed = (!mScreenOn || !mPanelExpanded) && !mPulsing;
+        boolean reorderingAllowed = !mScreenOn || !mPanelExpanded;
         boolean changed = reorderingAllowed && !mReorderingAllowed;
         mReorderingAllowed = reorderingAllowed;
         if (changed) {

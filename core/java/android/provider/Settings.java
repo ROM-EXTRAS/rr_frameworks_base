@@ -8929,12 +8929,6 @@ public static final String PHONE_BLACKLIST_REGEX_ENABLED = "phone_blacklist_rege
         public static final String NIGHT_MANBRIGHTNESS_USERVALUE = "night_manbrightness_uservalue";
 
         /**
-         * Whether doze should be always on.
-         * @hide
-         */
-        public static final String DOZE_ALWAYS_ON = "doze_always_on";
-
-        /**
          * Whether the device should pulse on pick up gesture.
          * @hide
          */

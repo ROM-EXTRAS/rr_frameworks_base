@@ -17,22 +17,24 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.MathUtils;
 import android.util.SparseBooleanArray;
 
+import com.android.internal.hardware.AmbientDisplayConfiguration;
 import com.android.systemui.R;
 
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class DozeParameters {
     private static final int MAX_DURATION = 60 * 1000;
-    public static final String DOZE_SENSORS_WAKE_UP_FULLY = "doze_sensors_wake_up_fully";
-    public static final boolean ALWAYS_ON_AVAILABLE = Build.IS_DEBUGGABLE;
 
     private final Context mContext;
 
@@ -58,10 +60,6 @@ public class DozeParameters {
         pw.print("    getPickupVibrationThreshold(): "); pw.println(getPickupVibrationThreshold());
         pw.print("    getPickupSubtypePerformsProxCheck(): ");pw.println(
                 dumpPickupSubtypePerformsProxCheck());
-        if (ALWAYS_ON_AVAILABLE) {
-            pw.print("    getAlwaysOn(): "); pw.println(getAlwaysOn());
-            pw.print("    getSensorsWakeUpFully(): "); pw.println(getSensorsWakeUpFully());
-        }
     }
 
     private String dumpPickupSubtypePerformsProxCheck() {
@@ -148,18 +146,6 @@ public class DozeParameters {
 
     public int getPickupVibrationThreshold() {
         return getInt("doze.pickup.vibration.threshold", R.integer.doze_pickup_vibration_threshold);
-    }
-
-    public boolean getAlwaysOn() {
-        return ALWAYS_ON_AVAILABLE
-                && Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.DOZE_ALWAYS_ON, 0, UserHandle.USER_CURRENT) != 0;
-    }
-
-    public boolean getSensorsWakeUpFully() {
-        return ALWAYS_ON_AVAILABLE
-                && Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                DOZE_SENSORS_WAKE_UP_FULLY, 0, UserHandle.USER_CURRENT) != 0;
     }
 
     private boolean getBoolean(String propName, int resId) {

@@ -286,10 +286,6 @@ public class StatusBarWindowView extends FrameLayout {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (mService.isDozing() && !mService.isPulsing()) {
-            // Discard all touch events in always-on.
-            return true;
-        }
         boolean intercept = false;
         if (mDoubleTapToSleepEnabled
                 && ev.getY() < mStatusBarHeaderHeight) {
@@ -321,11 +317,6 @@ public class StatusBarWindowView extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (mService.isDozing() && !mService.isPulsing()) {
-            // Discard all touch events in always-on.
-            return true;
-        }
-
         boolean handled = false;
         if (mService.getBarState() == StatusBarState.KEYGUARD) {
             handled = mDragDownHelper.onTouchEvent(ev);
