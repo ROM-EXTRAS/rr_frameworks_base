@@ -238,6 +238,10 @@ public final class ActiveServices {
                 ServiceRecord r = mDelayedStartList.remove(0);
                 if (DEBUG_DELAYED_STARTS) Slog.v(TAG_SERVICE,
                         "REM FR DELAY LIST (exec next): " + r);
+                if (r.pendingStarts.size() <= 0) {
+                    Slog.w(TAG, "**** NO PENDING STARTS! " + r + " startReq=" + r.startRequested
+                            + " delayedStop=" + r.delayedStop);
+                }
                 if (DEBUG_DELAYED_SERVICE) {
                     if (mDelayedStartList.size() > 0) {
                         Slog.v(TAG_SERVICE, "Remaining delayed list:");
@@ -247,16 +251,10 @@ public final class ActiveServices {
                     }
                 }
                 r.delayed = false;
-                if (r.pendingStarts.size() <= 0) {
-                    Slog.w(TAG, "**** NO PENDING STARTS! " + r + " startReq=" + r.startRequested
-                            + " delayedStop=" + r.delayedStop);
-                } else {
-                    try {
-                        startServiceInnerLocked(this, r.pendingStarts.get(0).intent, r, false,
-                                true);
-                    } catch (TransactionTooLargeException e) {
-                        // Ignore, nobody upstack cares.
-                    }
+                try {
+                    startServiceInnerLocked(this, r.pendingStarts.get(0).intent, r, false, true);
+                } catch (TransactionTooLargeException e) {
+                    // Ignore, nobody upstack cares.
                 }
             }
             if (mStartingBackground.size() > 0) {

@@ -103,7 +103,6 @@ import com.android.server.power.PowerManagerService;
 import com.android.server.power.ShutdownThread;
 import com.android.server.restrictions.RestrictionsManagerService;
 import com.android.server.retaildemo.RetailDemoModeService;
-import com.android.server.smartpixels.SmartPixelsReceiver;
 import com.android.server.soundtrigger.SoundTriggerService;
 import com.android.server.statusbar.StatusBarManagerService;
 import com.android.server.storage.DeviceStorageMonitorService;
@@ -225,7 +224,6 @@ public final class SystemServer {
     private PackageManager mPackageManager;
     private ContentResolver mContentResolver;
     private EntropyMixer mEntropyMixer;
-    private SmartPixelsReceiver mSmartPixelsReceiver;
 
     private boolean mOnlyCore;
     private boolean mFirstBoot;
@@ -1640,7 +1638,6 @@ public final class SystemServer {
                     reportWtf("Notifying NetworkScoreService running", e);
                 }
                 Trace.traceEnd(Trace.TRACE_TAG_SYSTEM_SERVER);
-                mSmartPixelsReceiver = new SmartPixelsReceiver(context);
             }
         });
     }
