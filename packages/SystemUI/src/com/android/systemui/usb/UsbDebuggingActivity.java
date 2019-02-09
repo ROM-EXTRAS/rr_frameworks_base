@@ -19,7 +19,6 @@ package com.android.systemui.usb;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,8 +29,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
-import android.os.UserHandle;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -52,8 +49,6 @@ public class UsbDebuggingActivity extends AlertActivity
     private CheckBox mAlwaysAllow;
     private UsbDisconnectedReceiver mDisconnectedReceiver;
     private String mKey;
-
-    private boolean mSmartPixels;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -93,23 +88,18 @@ public class UsbDebuggingActivity extends AlertActivity
 
         setupAlert();
 
-        mSmartPixels = Settings.System.getIntForUser(ap.mContext.getContentResolver(),
-                Settings.System.SMART_PIXELS_ENABLE, 1, UserHandle.USER_CURRENT) == 1;
-
         // adding touch listener on affirmative button - checks if window is obscured
         // if obscured, do not let user give permissions (could be tapjacking involved)
         final View.OnTouchListener filterTouchListener = (View v, MotionEvent event) -> {
             // Filter obscured touches by consuming them.
-            if (!mSmartPixels) {            
             if (((event.getFlags() & MotionEvent.FLAG_WINDOW_IS_OBSCURED) != 0)
-                            || ((event.getFlags() & MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED) != 0)) {
-                        if (event.getAction() == MotionEvent.ACTION_UP) {
-                            Toast.makeText(v.getContext(),
-                                    R.string.touch_filtered_warning,
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    return true;
+                    || ((event.getFlags() & MotionEvent.FLAG_WINDOW_IS_PARTIALLY_OBSCURED) != 0)) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    Toast.makeText(v.getContext(),
+                            R.string.touch_filtered_warning,
+                            Toast.LENGTH_SHORT).show();
                 }
+                return true;
             }
             return false;
         };

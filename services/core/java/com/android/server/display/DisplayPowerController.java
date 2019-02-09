@@ -270,8 +270,6 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
     static final int SCREEN_OFF_CRT = 1;
     static final int SCREEN_OFF_SCALE = 2;
 
-    final ContentResolver cr;
-
     /**
      * Creates the display power controller.
      */
@@ -287,8 +285,6 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
         mWindowManagerPolicy = LocalServices.getService(WindowManagerPolicy.class);
         mBlanker = blanker;
         mContext = context;
-
-        cr = mContext.getContentResolver();
 
         final Resources resources = context.getResources();
         final int screenBrightnessSettingMinimum = clampAbsoluteBrightness(resources.getInteger(
@@ -531,6 +527,7 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
     private void initialize() {
         // Initialize the power state object for the default display.
         // In the future, we might manage multiple displays independently.
+        final ContentResolver cr = mContext.getContentResolver();
         final ContentObserver observer = new ContentObserver(mHandler) {
             @Override
             public void onChange(boolean selfChange, Uri uri) {
@@ -796,18 +793,10 @@ final class DisplayPowerController implements AutomaticBrightnessController.Call
             mAppliedDimming = false;
         }
 
-        // If low power mode is enabled and Smart Pixels Service is stopped,
-        // cut the brightness level by half as long as it is above the minimum threshold.
-        int mSmartPixelsEnable = Settings.System.getIntForUser(
-                cr, Settings.System.SMART_PIXELS_ENABLE,
-                0, UserHandle.USER_CURRENT);
-        int mSmartPixelsOnPowerSave = Settings.System.getIntForUser(
-                cr, Settings.System.SMART_PIXELS_ON_POWER_SAVE,
-                0, UserHandle.USER_CURRENT);
-
+        // If low power mode is enabled, cut the brightness level by half
+        // as long as it is above the minimum threshold.
         if (mPowerRequest.lowPowerMode) {
-            if ((brightness > mScreenBrightnessRangeMinimum) &&
-                  ((mSmartPixelsEnable == 0) || (mSmartPixelsOnPowerSave == 0))) {
+            if (brightness > mScreenBrightnessRangeMinimum) {
                 brightness = Math.max(brightness / 2, mScreenBrightnessRangeMinimum);
             }
             if (!mAppliedLowPower) {
