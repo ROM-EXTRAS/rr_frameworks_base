@@ -226,7 +226,7 @@ def parse_fonts_xml(fonts_xml_path):
         for child in family:
             assert child.tag == 'font', (
                 'Unknown tag <%s>' % child.tag)
-            font_file = child.text
+            font_file = child.text.rstrip()
             weight = int(child.get('weight'))
             assert weight % 100 == 0, (
                 'Font weight "%d" is not a multiple of 100.' % weight)
@@ -314,8 +314,11 @@ def check_emoji_defaults(default_emoji):
             continue
         # For later fonts, we only check them if they have a script
         # defined, since the defined script may get them to a higher
-        # score even if they appear after the emoji font.
-        if emoji_font_seen and not record.scripts:
+        # score even if they appear after the emoji font. However,
+        # we should skip checking the text symbols font, since
+        # symbol fonts should be able to override the emoji display
+        # style when 'Zsym' is explicitly specified by the user.
+        if emoji_font_seen and (not record.scripts or 'Zsym' in record.scripts):
             continue
 
         # Check default emoji-style characters
