@@ -204,7 +204,7 @@ public class SmartPixelsService extends Service {
         );
 
         // Use the rounded corners overlay to hide it from screenshots. See 132c9f514.
-        params.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_IS_ROUNDED_CORNERS_OVERLAY;
+        //params.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_IS_ROUNDED_CORNERS_OVERLAY;
 
         params.dimAmount = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
         params.systemUiVisibility = View.SYSTEM_UI_FLAG_LOW_PROFILE;
