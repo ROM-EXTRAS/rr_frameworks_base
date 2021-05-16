@@ -120,7 +120,6 @@ public class FODCircleView extends ImageView implements ConfigurationListener,
     private boolean mIsDreaming;
     private boolean mIsPulsing;
     private boolean mIsKeyguard;
-    private boolean mTouchedOutside;
     private boolean mIsShowing;
     private boolean mIsScreenTurnedOn;
     private boolean mIsCircleShowing;
@@ -347,8 +346,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener,
         mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
                 WindowManager.LayoutParams.FLAG_DIM_BEHIND |
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED |
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
         mParams.gravity = Gravity.TOP | Gravity.LEFT;
 
         mWindowManager.addView(this, mParams);
@@ -475,8 +473,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener,
             mParamsPressed.packageName = "android";
             mParamsPressed.type = WindowManager.LayoutParams.TYPE_SYSTEM_FINGERPRINT_HIGH_LIGHT;
             mParamsPressed.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-	            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH;
+	            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
             mParamsPressed.privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_IS_ROUNDED_CORNERS_OVERLAY;
             mParamsPressed.gravity = Gravity.TOP | Gravity.LEFT;
 
@@ -499,12 +496,6 @@ public class FODCircleView extends ImageView implements ConfigurationListener,
         float y = event.getAxisValue(MotionEvent.AXIS_Y);
 
         boolean newIsInside = (x > 0 && x < mSize) && (y > 0 && y < mSize);
-        mTouchedOutside = false;
-
-        if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
-            mTouchedOutside = true;
-            return true;
-        }
 
         if (event.getAction() == MotionEvent.ACTION_DOWN && newIsInside) {
             showCircle();
@@ -631,9 +622,6 @@ public class FODCircleView extends ImageView implements ConfigurationListener,
     }
 
     public void showCircle() {
-
-        if (mTouchedOutside) return;
-
         mIsCircleShowing = true;
 
         setKeepScreenOn(true);
