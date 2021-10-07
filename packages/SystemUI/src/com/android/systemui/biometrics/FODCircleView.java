@@ -94,7 +94,6 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
     private final WindowManager mWindowManager;
 
     private IFingerprintInscreen mFingerprintInscreenDaemon;
-    private IFingerprintInscreen mDaemon = null;
 
     private Bitmap mIconBitmap;
 
@@ -173,7 +172,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
         @Override
         public void onFingerUp() {
             mHandler.post(() -> hideCircle());
-            if (mPressPending) {
+            if (mFodGestureEnable && mPressPending) {
                 mPressPending = false;
             }
         }
@@ -228,9 +227,9 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
         public void onPulsing(boolean pulsing) {
             super.onPulsing(pulsing);
             mIsPulsing = pulsing;
-	        if (mIsPulsing) {
+            if (mIsPulsing) {
                 mIsDreaming = false;
-	        }
+            }
         }
 
         @Override
@@ -286,7 +285,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
 
         mContext = context;
 
-        mDaemon = getFingerprintInScreenDaemon();
+        IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
         if (mDaemon == null) {
             throw new RuntimeException("Unable to get IFingerprintInscreen");
         }
@@ -329,8 +328,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
         mParams.packageName = "android";
         mParams.type = WindowManager.LayoutParams.TYPE_DISPLAY_OVERLAY;
         mParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
         mParams.gravity = Gravity.TOP | Gravity.LEFT;
 
         mPressedParams.copyFrom(mParams);
@@ -412,7 +410,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
                 updateStyle();
             } else if (uri.equals(Settings.System.getUriFor(
                     Settings.System.FOD_ANIM))) {
-	        updateStyle();
+            updateStyle();
             } else if (uri.equals(Settings.System.getUriFor(
                     Settings.System.FOD_PRESSED_STATE))) {
                 updatepressedState();
@@ -513,6 +511,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
     }
 
     public void dispatchPress() {
+        IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
         try {
             mDaemon.onPress();
         } catch (RemoteException e) {
@@ -521,6 +520,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
     }
 
     public void dispatchRelease() {
+        IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
         try {
             mDaemon.onRelease();
         } catch (RemoteException e) {
@@ -529,6 +529,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
     }
 
     public void dispatchShow() {
+        IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
         try {
             mDaemon.onShowFODView();
         } catch (RemoteException e) {
@@ -537,6 +538,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
     }
 
     public void dispatchHide() {
+        IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
         try {
             mDaemon.onHideFODView();
         } catch (RemoteException e) {
@@ -722,7 +724,7 @@ public class FODCircleView extends ImageView implements ConfigurationListener, T
             int dimAmount = 0;
             int curBrightness = Settings.System.getInt(getContext().getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS, 100);
-
+            IFingerprintInscreen mDaemon = getFingerprintInScreenDaemon();
             try {
                 dimAmount = mDaemon.getDimAmount(curBrightness);
             } catch (RemoteException e) {
