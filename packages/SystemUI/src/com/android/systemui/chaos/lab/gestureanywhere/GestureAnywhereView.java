@@ -68,6 +68,7 @@ public class GestureAnywhereView extends TriggerOverlayView implements GestureOv
     private SettingsObserver mSettingsObserver;
     private long mGestureLoadedTime = 0;
     private boolean mTriggerVisible = false;
+     private boolean isUnlocked = false;
     private TranslateAnimation mSlideIn;
     private TranslateAnimation mSlideOut;
 
@@ -366,6 +367,11 @@ public class GestureAnywhereView extends TriggerOverlayView implements GestureOv
     @Override
     public void onGestureStarted(GestureOverlayView overlay, MotionEvent event) {
         if (mState == State.Expanded) {
+            if (!isUnlocked) {
+                Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.GESTURE_ANYWHERE_ENABLED, 1);
+                isUnlocked = true;
+            }
             switchToState(State.Gesturing);
         }
     }
